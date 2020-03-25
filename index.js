@@ -34,7 +34,7 @@ async function download(count = 0) {
                                 
                 const options = {
                     directory: `./downloads/${collectionName}`,
-                    filename: `${packageName.split("/").join("")}.civmod`
+                    filename: `${packageName.split("/").join("")}${process.argv[2]||".zip"}`
                 }
                 
                 console.log(`    ${idx}. ${packageName}`);
