@@ -5,3 +5,5 @@ Simple steam workshop downloader built using nodejs. Follow the instruction belo
 2. Run `npm install` command on cmd or bash to install required libraries.
 3. Now open urls.txt using any texteditor and put urls to *collections* as it is provided in given example.
 4. Run `npm start` command to start downloading. All your downloads should be under downloads folder.
+
+**note: if you want to change the the default file extension from .zip use `npm start <new extension>` command instead of `npn start**
