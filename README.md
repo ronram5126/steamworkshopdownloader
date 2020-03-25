@@ -1,6 +1,6 @@
-# Steam Workshop Downloader
+# Steam Workshop Collection Downloader
 
-Simple steam workshop downloader built using nodejs. Follow the instruction below to use this.
+Simple steam workshop collection downloader built using nodejs. *This package only downloads workshop collections, not individual workshop file. please use [Steam Workshop Download](http://steamworkshop.download/) for individual packages.* Follow the instruction below to use this.
 
 1. Firstly you will need Node JS installed in your pc. you can get it from [https://nodejs.org/en/download/](https://nodejs.org/en/download/).
 2. Download or Clone the repository.
