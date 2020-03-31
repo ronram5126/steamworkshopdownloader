@@ -1,16 +1,30 @@
 const fs = require("fs");
 const jsdom = require("jsdom");
 const axios = require("axios").default;
-var Download = require('download-file')
+const { DownloaderHelper }  = require("node-downloader-helper");
+
 const { JSDOM } = jsdom;
 
 const urls = fs.readFileSync("./urls.txt").toString().split("\n");
+
+function last(arr) {
+    if (Array.isArray(arr) && arr.length > 0) {
+        return arr[arr.length - 1];
+    } else {
+        return undefined;
+    }
+}
 
 async function download(count = 0) {
     const url = urls[count];
     if (count >= urls.length) {
         return;
     }
+    const downloadDir = "./downloads";
+    if (!fs.existsSync(downloadDir)) {
+        fs.mkdirSync(downloadDir);
+    }
+    if (url.includes("http"))
     await axios.get(url).then(async ({data}) => {
         
         const dom = new JSDOM(data);
@@ -18,35 +32,48 @@ async function download(count = 0) {
         const document = window.document;
         const linkArray = [].slice.call(document.getElementsByClassName("collectionItem")).map(a => a.children[2].children[0]);
         const namedUrlArray = linkArray.map(link => [link.href, link.children[0].textContent])
+        
         const collectionName = document.getElementsByClassName("workshopItemTitle")[0].textContent;
+        const collectionDir = `${downloadDir}/${collectionName}`;
+
+        if (!fs.existsSync(collectionDir)) {
+            fs.mkdirSync(collectionDir)
+        }
+
+        const appId = last(
+            document.getElementsByClassName('breadcrumbs')[0]
+            .getElementsByTagName('a')[0]
+            .href.split('/')
+        );
+        
         console.log(`downloading ${collectionName}`);
+        
         for (let idx = 0; idx < namedUrlArray.length; idx ++) {
             const [link, packageName] = namedUrlArray[idx];
-            const steamId = link.split("?id=")[1];
+            const workshopId = link.split("?id=")[1];
+            const url = `http://steamworkshop.download/download/view/${workshopId}`;
             
-            await axios.get(`http://steamworkshop.download/download/view/${steamId}`).then(async ({data}) => {
+            await axios.get(url).then(async ({data}) => {
                 const dom = new JSDOM(data);
                 const { window } = dom;
                 const { document } = window;
-                const link = document.getElementsByTagName("table")[0].children[0].children[0].children[0].children[1].children[0];
-                
-                const url = link.href;
-                                
-                const options = {
-                    directory: `./downloads/${collectionName}`,
-                    filename: `${packageName.split("/").join("")}${process.argv[2]||".zip"}`
-                }
+
+                const subDownloadButton = document.getElementById("steamdownload");
+
+                const fileName =  `${packageName.split("/").join("")}${process.argv[2]||".zip"}`;
+                // const filePath = `${collectionDir}/${fileName}`
                 
                 console.log(`    ${idx}. ${packageName}`);
-                await new Promise(res => Download(url, options, function(err){
-                    if (err) {
-                        console.log(collectionName);
-                        console.log(packageName);
-                        console.log(err);
-                    }
-                    
-                    res();
-                }));
+                if (subDownloadButton) {
+                    let response = await axios.post("http://steamworkshop.download/online/steamonline.php", `item=${workshopId}&app=${appId}`);
+                    const url = last(response.data.split("<a href='")).split("'>")[0];
+                    await downloadAndSave(url, collectionDir, fileName);
+                } else {
+                    const link = document.getElementsByTagName("table")[0].children[0].children[0].children[0].children[1].children[0];
+                    const url = link.href;    
+                    await downloadAndSave(url, collectionDir, fileName);
+                }
+
             }).catch(err => {
                 console.log(packageName);
                 console.log(collectionName);
@@ -64,5 +91,43 @@ async function download(count = 0) {
     await download(count + 1);
 };
 
+async function downloadAndSave(url, dir, fileName) {
+    await new Promise((res, rej) => {
+        const helper = new DownloaderHelper(url, dir, { fileName });
+        helper.on('end', (...args) =>  {
+            res(args)
+        });
+        helper.on('error', (...args) => {
+            console.error(args);
+            rej(args);
+        } );
+        helper.start();
+    });
+}
+
+// async function downloadAndSave(url, filePath) {
+//     const response = await axios.get(url);
+//     console.log(response.status);
+//     Object.keys(response.headers).forEach(res => {
+//         console.log(`${res}: ${JSON.stringify(response.headers[res])}`)
+//     });
+//     await savefile(response.data, filePath);
+// }
+
+// async function savefile(data, filePath) {
+    
+//     await new Promise((res, rej) => {
+//         fs.writeFile(filePath, data, (err) => {
+//             if(err) {
+//                 rej(err);
+//             }
+//             res();
+//         })
+//     });
+    
+// }
+
+
 download();
+
 
