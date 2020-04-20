@@ -52,35 +52,39 @@ async function download(count = 0) {
             const [link, packageName] = namedUrlArray[idx];
             const workshopId = link.split("?id=")[1];
             const url = `http://steamworkshop.download/download/view/${workshopId}`;
+            const fileName =  `${packageName.split("/").join("")}${process.argv[2]||".zip"}`;
             
-            await axios.get(url).then(async ({data}) => {
-                const dom = new JSDOM(data);
-                const { window } = dom;
-                const { document } = window;
+            if (fs.existsSync(collectionDir + '/' + fileName)){
+                console.log(`Skipping ${packageName.split("/").join("")}, file already downloaded`)
 
-                const subDownloadButton = document.getElementById("steamdownload");
+            } else {
+                await axios.get(url).then(async ({data}) => {
+                    const dom = new JSDOM(data);
+                    const { window } = dom;
+                    const { document } = window;
 
-                const fileName =  `${packageName.split("/").join("")}${process.argv[2]||".zip"}`;
-                // const filePath = `${collectionDir}/${fileName}`
-                
-                console.log(`    ${idx}. ${packageName}`);
-                if (subDownloadButton) {
-                    let response = await axios.post("http://steamworkshop.download/online/steamonline.php", `item=${workshopId}&app=${appId}`);
-                    const url = last(response.data.split("<a href='")).split("'>")[0];
-                    await downloadAndSave(url, collectionDir, fileName);
-                } else {
-                    const link = document.getElementsByTagName("table")[0].children[0].children[0].children[0].children[1].children[0];
-                    const url = link.href;    
-                    await downloadAndSave(url, collectionDir, fileName);
-                }
+                    const subDownloadButton = document.getElementById("steamdownload");
 
-            }).catch(err => {
-                console.log(packageName);
-                console.log(collectionName);
-                console.log(err);
-            });
+                    
+                    // const filePath = `${collectionDir}/${fileName}`
+                    
+                    console.log(`    ${idx}. ${packageName}`);
+                    if (subDownloadButton) {
+                        let response = await axios.post("http://steamworkshop.download/online/steamonline.php", `item=${workshopId}&app=${appId}`);
+                        const url = last(response.data.split("<a href='")).split("'>")[0];
+                        await downloadAndSave(url, collectionDir, fileName);
+                    } else {
+                        const link = document.getElementsByTagName("table")[0].children[0].children[0].children[0].children[1].children[0];
+                        const url = link.href;
+                        await downloadAndSave(url, collectionDir, fileName);
+                    }
 
-            
+                }).catch(err => {
+                    console.log(packageName);
+                    console.log(collectionName);
+                    console.log(err);
+                });
+            }
         };
         
 
