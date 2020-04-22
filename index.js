@@ -14,6 +14,12 @@ function last(arr) {
         return undefined;
     }
 }
+function validName(name) {
+    return name
+        .split(/[\*\/\\\|\?\"\'\:\;]/).join(" ")
+        .split(/[{[<]/).join("(")
+        .split(/[}\]>]/).join(")");
+}
 
 async function download(count = 0) {
     const url = urls[count];
@@ -34,7 +40,7 @@ async function download(count = 0) {
         const namedUrlArray = linkArray.map(link => [link.href, link.children[0].textContent])
         
         const collectionName = document.getElementsByClassName("workshopItemTitle")[0].textContent;
-        const collectionDir = `${downloadDir}/${collectionName}`;
+        const collectionDir = `${downloadDir}/${validName(collectionName)}`;
 
         if (!fs.existsSync(collectionDir)) {
             fs.mkdirSync(collectionDir)
@@ -52,7 +58,7 @@ async function download(count = 0) {
             const [link, packageName] = namedUrlArray[idx];
             const workshopId = link.split("?id=")[1];
             const url = `http://steamworkshop.download/download/view/${workshopId}`;
-            const fileName =  `${packageName.split("/").join("")}${process.argv[2]||".zip"}`;
+            const fileName =  validName(`${packageName.split("/").join("")}${process.argv[2]||".zip"}`);
             
             if (fs.existsSync(collectionDir + '/' + fileName)){
                 console.log(`Skipping ${packageName.split("/").join("")}, file already downloaded`)
