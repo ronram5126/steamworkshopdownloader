@@ -36,7 +36,7 @@ async function download(count = 0) {
         const dom = new JSDOM(data);
         const window = dom.window;
         const document = window.document;
-        const linkArray = [].slice.call(document.getElementsByClassName("collectionItem")).map(a => a.children[2].children[0]);
+        const linkArray = [].slice.call(document.getElementsByClassName("collectionItemDetails")).map(a => a.children[0]);
         const namedUrlArray = linkArray.map(link => [link.href, link.children[0].textContent])
         
         const collectionName = document.getElementsByClassName("workshopItemTitle")[0].textContent;
