@@ -77,8 +77,12 @@ async function download(count = 0) {
                     console.log(`    ${idx}. ${packageName}`);
                     if (subDownloadButton) {
                         let response = await axios.post("http://steamworkshop.download/online/steamonline.php", `item=${workshopId}&app=${appId}`);
-                        const url = last(response.data.split("<a href='")).split("'>")[0];
-                        await downloadAndSave(url, collectionDir, fileName);
+                        if (!response.data.includes("<a href='")) {
+                            console.log(`${packageName} can't be downloaded: ${response.data}`);
+                        } else {
+                            const url = last(response.data.split("<a href='")).split("'>")[0];
+                            await downloadAndSave(url, collectionDir, fileName);
+                    	}
                     } else {
                         const link = document.getElementsByTagName("table")[0].children[0].children[0].children[0].children[1].children[0];
                         const url = link.href;
