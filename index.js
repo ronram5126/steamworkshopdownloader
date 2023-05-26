@@ -3,6 +3,7 @@ const jsdom = require("jsdom");
 const axios = require("axios").default;
 const { DownloaderHelper }  = require("node-downloader-helper");
 const cheerio = require('cheerio');
+const querystring = require('querystring');
 
 const { JSDOM } = jsdom;
 
@@ -54,7 +55,7 @@ async function download(count = 0) {
         );
 
         console.log(`downloading ${collectionName}`);
-
+        let skippedCount = 0;
         for (let idx = 0; idx < namedUrlArray.length; idx ++) {
             const [link, packageName] = namedUrlArray[idx];
             const workshopId = link.split("?id=")[1];
@@ -78,21 +79,37 @@ async function download(count = 0) {
                     console.log(`    ${idx}. ${packageName}`);
                     if (subDownloadButton) {
                         console.log("http://steamworkshop.download/online/steamonline.php", `item=${workshopId}&app=${appId}`)
+
                         const data = {
                             item: workshopId,
                             app: appId,
                         }
+                        const formData = querystring.stringify(data);
+                        // formData.append("item", workshopId);
+                        // formData.append("app", appId)
+                        console.log(`http://steamworkshop.download/download/view/${workshopId}`)
                         let response = await axios.get(`http://steamworkshop.download/download/view/${workshopId}`);
-                        const html = response.data;
-
+                        let clickBtn = await axios.post('http://steamworkshop.download/online/steamonline.php', formData, {
+                            headers: {
+                                Connection: "keep-alive",
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            }
+                        });
+                        const html = clickBtn.data;
                         const $ = cheerio.load(html);
                         const links = [];
                         $('a').each((index, element) => {
                             const href = $(element).attr('href');
                             links.push(href);
                         });
+                        console.log("link:", links[0])
+                        if (!links[0]){
+                            skippedCount += 1;
+                            console.log("Skpping: ", skippedCount)
+                            return;
+                        }
                         const url = last(response.data.split("<a href='")).split("'>")[0];
-                        await downloadAndSave(links[5], collectionDir, fileName);
+                        await downloadAndSave(links[0], collectionDir, fileName);
                     } else {
                         const link = document.getElementsByTagName("table")[0].children[0].children[0].children[0].children[1].children[0];
                         const url = link.href;

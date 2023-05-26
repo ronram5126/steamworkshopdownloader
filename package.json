@@ -11,9 +11,10 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^1.4.0",
     "cheerio": "^1.0.0-rc.12",
     "jsdom": "^16.2.1",
-    "node-downloader-helper": "^1.0.12"
+    "node-downloader-helper": "^1.0.12",
+    "querystring": "^0.2.1"
   }
 }
