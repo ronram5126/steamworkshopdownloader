@@ -85,8 +85,6 @@ async function download(count = 0) {
                             app: appId,
                         }
                         const formData = querystring.stringify(data);
-                        // formData.append("item", workshopId);
-                        // formData.append("app", appId)
                         console.log(`http://steamworkshop.download/download/view/${workshopId}`)
                         let response = await axios.get(`http://steamworkshop.download/download/view/${workshopId}`);
                         let clickBtn = await axios.post('http://steamworkshop.download/online/steamonline.php', formData, {
@@ -108,7 +106,7 @@ async function download(count = 0) {
                             console.log("Skpping: ", skippedCount)
                             return;
                         }
-                        const url = last(response.data.split("<a href='")).split("'>")[0];
+                        // const url = last(response.data.split("<a href='")).split("'>")[0];
                         await downloadAndSave(links[0], collectionDir, fileName);
                     } else {
                         const link = document.getElementsByTagName("table")[0].children[0].children[0].children[0].children[1].children[0];
