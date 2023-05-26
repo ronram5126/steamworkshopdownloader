@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
+    "cheerio": "^1.0.0-rc.12",
     "jsdom": "^16.2.1",
     "node-downloader-helper": "^1.0.12"
   }
